@@ -36,6 +36,11 @@ inputs:
     required: true
     default: ${{ github.repository_owner }}
 
+outputs:
+  pr-url:
+    description: URL of the created pull request
+    value: ${{ steps.action.outputs.pr-url }}
+
 runs:
   using: composite
   steps:
@@ -49,6 +54,7 @@ runs:
         GITHUB_TOKEN: ${{ github.token }}
       shell: bash
     - name: Run action
+      id: action
       run: pwsh "$env:GITHUB_ACTION_PATH/winget-releaser.ps1"
       env:
         INPUT_IDENTIFIER: ${{ inputs.identifier }}

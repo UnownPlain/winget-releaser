@@ -14,6 +14,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true
+# Ensures the PR URL from komac update is printed
+# https://docs.rs/supports-hyperlinks/latest/supports_hyperlinks/#forcing-hyperlinks-in-tools-that-use-supports-hyperlinks
+$env:FORCE_HYPERLINK = 0
+# Fixes non-ASCII characters being garbled in logs when Tee-Object is used
+[console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 if ($Test) {
     Write-Output "==> Setting up test environment variables"
@@ -77,7 +82,13 @@ if (-not [string]::IsNullOrEmpty($ReleaseNotesUrl)) {
 Write-Output "==> Running komac update..."
 # Flatten nested URL array before joining
 Write-Output "$ komac $(@($KomacArgs | ForEach-Object { $_ }) -Join " ")"
-komac @KomacArgs
+komac @KomacArgs | Tee-Object -Variable KomacOutput
+
+if ($env:DRY_RUN -ne "true") {
+    # The PR URL should always be the last line of output
+    $PrUrl = $KomacOutput.Split("`n", [StringSplitOptions]::RemoveEmptyEntries) | Select-Object -Last 1
+    Add-Content $env:GITHUB_OUTPUT -Value "pr-url=$PrUrl"
+}
 
 Write-Output "==> Cleaning up stale branches..."
 komac cleanup --all
