@@ -150,6 +150,7 @@ jobs:
 | `fork-user` (Optional)            | The GitHub user where [winget-pkgs][winget-pkgs-repo] fork is present. This fork will be used to create PR at [WinGet Community Repository][winget-pkgs-repo].                | **Default**: `${{ github.repository_owner }} # repository owner` <br> **Example**: `dotnet-winget-bot`                                                                    |
 | `token` **(Mandatory)**           | GitHub token to create PR at [winget-pkgs][winget-pkgs-repo]. **The token should have a `public_repo` scope.**                                                                | **Example**: `token: ${{ secrets.WINGET_TOKEN }} # Repository secret called 'WINGET_TOKEN'`                                                                               |
 | `release-notes-url` (Optional)    | URL to package version's release notes.                                                                                                                                       | **Default**: GitHub release page <br> **Example**: `release-notes-url: https://example.com/release-notes/${{ github.event.release.tag_name }}`                            |
+| `dry-run` (Optional)              | Generate and validate manifests without modifying the winget-pkgs fork or creating a pull request.                                                                            | **Default**: `false`                                                                                                                                                      |
 
 ## Outputs
 

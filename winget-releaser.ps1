@@ -9,7 +9,7 @@ param(
     [string]$ReleaseTag = $env:INPUT_RELEASE_TAG,
     [string]$ReleaseNotesUrl = $env:INPUT_RELEASE_NOTES_URL,
     [string]$RepositoryOwner = $env:INPUT_REPOSITORY_OWNER,
-    [switch]$Test
+    [string]$DryRun = $env:INPUT_DRY_RUN
 )
 
 $ErrorActionPreference = 'Stop'
@@ -20,17 +20,19 @@ $env:FORCE_HYPERLINK = 0
 # Fixes non-ASCII characters being garbled in logs when Tee-Object is used
 [console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-if ($Test) {
-    Write-Output "==> Setting up test environment variables"
-    if (-not $env:GITHUB_TOKEN) {
-        throw "Please provide a GITHUB_TOKEN environment variable."
+$DryRunEnabled = switch ($DryRun.ToLowerInvariant()) {
+    'true' { $true }
+    'false' { $false }
+    '' { $false }
+    default {
+        Write-Output "::error::Invalid input: dry-run should be a boolean."
+        exit 1
     }
-    if (-not $InstallersRegex) {
-        $InstallersRegex = '.(exe|msi|msix|appx)(bundle){0,1}$'
-    }
+}
+
+if ($DryRunEnabled) {
+    Write-Output "==> Dry-run mode enabled"
     $env:DRY_RUN = "true"
-    $env:CI = "true"
-    $env:GH_TOKEN = $env:GITHUB_TOKEN
 }
 
 # Check if at least one version of the package is already present in winget-pkgs repository
@@ -66,8 +68,13 @@ if (-not $Urls) {
     exit 1
 }
 
-Write-Output "==> Syncing fork with upstream..."
-komac sync-fork
+if ($DryRunEnabled) {
+    Write-Output "==> Skipping fork sync in dry-run mode."
+}
+else {
+    Write-Output "==> Syncing fork with upstream..."
+    komac sync-fork
+}
 
 $KomacArgs = @('update', $PackageIdentifier, '--version', $ResolvedVersion, '--urls', $Urls, '--submit')
 
@@ -84,14 +91,19 @@ Write-Output "==> Running komac update..."
 Write-Output "$ komac $(@($KomacArgs | ForEach-Object { $_ }) -Join " ")"
 komac @KomacArgs | Tee-Object -Variable KomacOutput
 
-if ($env:DRY_RUN -ne "true") {
+if (-not $DryRunEnabled) {
     # The PR URL should always be the last line of output
     $PrUrl = $KomacOutput.Split("`n", [StringSplitOptions]::RemoveEmptyEntries) | Select-Object -Last 1
     Add-Content $env:GITHUB_OUTPUT -Value "pr-url=$PrUrl"
 }
 
-Write-Output "==> Cleaning up stale branches..."
-komac cleanup --all
+if ($DryRunEnabled) {
+    Write-Output "==> Skipping branch cleanup in dry-run mode."
+}
+else {
+    Write-Output "==> Cleaning up stale branches..."
+    komac cleanup --all
+}
 
 if (-not $MaxVersionsToKeep) {
     exit 0
@@ -115,8 +127,8 @@ if (-not $VersionsToDelete) {
 Write-Output "==> Versions to be removed: $($VersionsToDelete -join ', ')"
 foreach ($Ver in $VersionsToDelete) {
     Write-Output "==> Removing version: $Ver"
-    if ($env:DRY_RUN -eq "true") {
-        Write-Output "==> Skipping removal due to DRY_RUN being set."
+    if ($DryRunEnabled) {
+        Write-Output "==> Skipping removal due to dry-run mode."
         continue
     }
     komac remove $PackageIdentifier --version $Ver --reason "$Reason" --submit

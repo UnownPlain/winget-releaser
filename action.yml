@@ -35,6 +35,10 @@ inputs:
     description: The GitHub user where winget-pkgs fork is present. This fork will be used to create the PR at the WinGet Community Repository.
     required: true
     default: ${{ github.repository_owner }}
+  dry-run:
+    description: Generate and validate manifests without modifying the winget-pkgs fork or creating a pull request.
+    required: true
+    default: 'false'
 
 outputs:
   pr-url:
@@ -65,6 +69,7 @@ runs:
         INPUT_RELEASE_TAG: ${{ inputs.release-tag }}
         INPUT_RELEASE_NOTES_URL: ${{ inputs.release-notes-url }}
         INPUT_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        INPUT_DRY_RUN: ${{ inputs.dry-run }}
         KOMAC_FORK_OWNER: ${{ inputs.fork-user }}
         KOMAC_CREATED_WITH: WinGet Releaser
         KOMAC_CREATED_WITH_URL: ${{ github.server_url }}/${{ github.action_repository }}
