@@ -46,6 +46,10 @@ if ($DryRunEnabled) {
     $env:DRY_RUN = "true"
 }
 
+if ($ReleaseRepository.Contains('/')) {
+    $RepositoryOwner, $ReleaseRepository = $ReleaseRepository -split '/', 2
+}
+
 # Check if at least one version of the package is already present in winget-pkgs repository
 try {
     komac list-versions $PackageIdentifier | Out-Null

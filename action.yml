@@ -18,7 +18,7 @@ inputs:
     required: true
     default: '0'
   release-repository:
-    description: The repository where the release is located.
+    description: The repository where the release is located, as a name or owner/name. If the owner is omitted, the current workflow repository owner is used.
     required: true
     default: ${{ github.event.repository.name }}
   release-tag:
