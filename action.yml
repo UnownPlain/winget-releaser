@@ -48,15 +48,8 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Setup cargo-binstall
-      uses: cargo-bins/cargo-binstall@280a9357bf131d957a090c390bf426ed086fa405 # main
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
     - name: Install komac
-      run: cargo-binstall komac -y
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-      shell: bash
+      uses: UnownPlain/install-komac@aa87b1b14e2370e14cb11449e4408f8ae7a651d9 # 1.2
     - name: Run action
       id: action
       run: pwsh "$env:GITHUB_ACTION_PATH/winget-releaser.ps1"
