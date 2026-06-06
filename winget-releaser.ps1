@@ -20,6 +20,17 @@ $env:FORCE_HYPERLINK = 0
 # Fixes non-ASCII characters being garbled in logs when Tee-Object is used
 [console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+if ($env:CI -ne 'true') {
+    $env:CI = "true"
+    $env:GITHUB_OUTPUT = "output.txt"
+    if (-not $InstallersRegex) {
+        $InstallersRegex = '.(exe|msi|msix|appx)(bundle){0,1}$'
+    }
+    if (-not $env:GITHUB_TOKEN) {
+        $env:GITHUB_TOKEN = gh auth token
+    }
+}
+
 $DryRunEnabled = switch ($DryRun.ToLowerInvariant()) {
     'true' { $true }
     'false' { $false }
