@@ -39,6 +39,9 @@ inputs:
     description: Generate and validate manifests without modifying the winget-pkgs fork or creating a pull request.
     required: true
     default: 'false'
+  komac-version:
+    description: Version of Komac to use.
+    required: false
 
 outputs:
   pr-url:
@@ -50,6 +53,8 @@ runs:
   steps:
     - name: Install komac
       uses: UnownPlain/install-komac@aa87b1b14e2370e14cb11449e4408f8ae7a651d9 # 1.2
+      with:
+        version: ${{ inputs.komac-version }}
     - name: Run action
       id: action
       run: pwsh "$env:GITHUB_ACTION_PATH/winget-releaser.ps1"
