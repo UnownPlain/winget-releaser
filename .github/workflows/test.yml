@@ -1,0 +1,68 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test Action
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-2025
+          - windows-11-arm
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - ubuntu-slim
+          - macos-26
+          - macos-26-intel
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Test RussellBanks.Komac
+        uses: ./
+        with:
+          identifier: RussellBanks.Komac
+          installers-regex: 'komac-setup.*\.exe$'
+          token: ${{ github.token }}
+          release-repository: russellbanks/Komac
+          release-tag: v2.16.0
+          dry-run: true
+
+      - name: Test OpenAI.Codex
+        uses: ./
+        with:
+          identifier: OpenAI.Codex
+          version: 0.137.0
+          release-tag: rust-v0.137.0
+          fork-user: openai-oss-forks
+          installers-regex: '^codex-(?:x86_64|aarch64)-pc-windows-msvc\.exe\.zip$'
+          token: ${{ github.token }}
+          release-repository: openai/codex
+          dry-run: true
+
+      - name: Test ZedIndustries.Zed
+        uses: ./
+        with:
+          identifier: ZedIndustries.Zed
+          release-tag: v1.5.3
+          max-versions-to-keep: 5
+          token: ${{ github.token }}
+          release-repository: zed-industries/zed
+          dry-run: true

@@ -49,7 +49,7 @@ runs:
   using: composite
   steps:
     - name: Setup cargo-binstall
-      uses: cargo-bins/cargo-binstall@main
+      uses: cargo-bins/cargo-binstall@280a9357bf131d957a090c390bf426ed086fa405 # main
       env:
         GITHUB_TOKEN: ${{ github.token }}
     - name: Install komac
